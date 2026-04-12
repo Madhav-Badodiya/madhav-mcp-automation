@@ -1,0 +1,95 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROJECT   : Rahul Shetty Academy E-Commerce
+TESTED BY : Madhav Badodiya
+TOOL      : MCP + Playwright Automation
+DATE      : April 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUG-001
+Title       : Search functionality non-operational
+Severity    : High
+Type        : Functional
+Environment : https://rahulshettyacademy.com/client
+Description : The search bar on the dashboard accepts 
+              keyboard input but returns no results for 
+              any search term entered. All products remain 
+              visible regardless of search keyword.
+              Expected: Products filter based on search term
+              Actual: No filtering occurs, all products shown
+Impact      : User cannot search for specific products.
+              Full product list must be manually scanned.
+Status      : Open — Workaround implemented in automation
+              (scan all cards, match by keyword in loop)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUG-002
+Title       : Angular typeahead dropdown not triggered 
+              by programmatic text input
+Severity    : Medium
+Type        : Integration / Compatibility
+Environment : Checkout page — Select Country field
+Description : The country input field uses Angular's 
+              ngx-typeahead component which listens for 
+              native keyboard events per keystroke.
+              Programmatic text injection (fill/paste) 
+              bypasses these events entirely, causing the 
+              dropdown suggestion list to never appear.
+              Expected: Dropdown appears after text input
+              Actual: Dropdown never triggers, timeout occurs
+Impact      : Checkout cannot be completed via any 
+              automation tool that uses fill() or paste-style 
+              input. Affects Selenium, Playwright, Cypress alike.
+Fix         : Character-by-character typing with 100ms delay 
+              between keystrokes simulates real user input 
+              and correctly triggers the dropdown
+Status      : Fixed — Workaround documented
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUG-003
+Title       : Country dropdown returns ambiguous results 
+              for common search terms
+Severity    : Medium
+Type        : UX / Data
+Environment : Checkout page — Select Country dropdown
+Description : Searching "India" in the country field returns 
+              three results — India, British Indian Ocean 
+              Territory, and Indonesia. No exact match 
+              priority or ranking logic exists in the 
+              typeahead component.
+              Expected: Exact match "India" appears first 
+              or is highlighted distinctly
+              Actual: All partial matches shown with equal 
+              priority, no visual distinction
+Impact      : Users may accidentally select wrong country 
+              if they click the first result assuming it is 
+              an exact match. Automation tools using partial 
+              text matching will fail due to ambiguity.
+Fix         : Exact full-text comparison implemented in 
+              automation to ensure correct country selected
+Status      : Open — Application side not fixed
+              Automation workaround in place
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUG-004
+Title       : Order auto-deletion without user consent
+Severity    : High
+Type        : Functional / Data Integrity
+Environment : Orders History page
+Description : Application displays a warning stating 
+              "If orders will be more than 7, your last 
+              order will get deleted" — meaning the system 
+              silently deletes historical order data without 
+              any user confirmation or notification.
+              Expected: User prompted before any data deletion
+              OR order history paginated without deletion
+              Actual: Orders deleted automatically, no warning 
+              shown at time of deletion, no consent taken
+Impact      : Users lose order history permanently without 
+              knowing. Critical for any compliance or 
+              customer support scenario.
+Status      : Open — No fix available at application level
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
