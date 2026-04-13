@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 from playwright.async_api import async_playwright, expect
+import pyodbc
 
 # Create the MCP server with a name
 mcp = FastMCP("Madhav Automation Server")
@@ -207,6 +208,10 @@ async def checkout(country: str) -> str:
     except Exception as e:
         return f"Error in checkout: {str(e)}"
 
+# ─────────────────────────────────────────
+# TOOL 6: Get Order History
+# ─────────────────────────────────────────
+
 @mcp.tool()
 async def get_order_history() -> str:
     """Retrieve and return a list of past orders from the Orders History page"""
@@ -245,6 +250,10 @@ async def get_order_history() -> str:
 
     except Exception as e:
         return f"Error in get_order_history: {str(e)}"
+    
+# ─────────────────────────────────────────
+# TOOL 7:  Get Screenshot
+# ─────────────────────────────────────────
 
 @mcp.tool()
 async def take_screenshot(filename: str) -> str:
@@ -267,6 +276,69 @@ async def take_screenshot(filename: str) -> str:
 
     except Exception as e:
         return f"Error in take_screenshot: {str(e)}"
+    
+
+# ─────────────────────────────────────────
+# DB CONNECTION HELPER
+# ─────────────────────────────────────────
+def get_db_connection():
+    conn_str = (
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=localhost\\SQLEXPRESS;"
+        "DATABASE=madhav_test_data;"
+        "Trusted_Connection=yes;"
+        "TrustServerCertificate=yes;"
+    )
+    return pyodbc.connect(conn_str)
+
+# ─────────────────────────────────────────
+# TOOL 8: Get Test User from Database
+# ─────────────────────────────────────────
+
+@mcp.tool()
+async def get_test_user(role: str) -> str:
+    """Fetch login credentials from SQL server based on user role (e.g., 'admin', 'user')"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT email, password FROM test_users WHERE role = ?", role)
+        
+        row = cursor.fetchone()
+        conn.close()
+
+        if row is None:
+            return f"No user found with role '{role}'."
+
+        email, password = row
+        return f"Credentials for role '{role}': Email: {email}, Password: {password}"
+
+    except Exception as e:
+        return f"DB Error in fetching get_test_user from database: {str(e)}"
+
+# ─────────────────────────────────────────
+# TOOL 9: Get Test Product from Database
+# ─────────────────────────────────────────
+
+@mcp.tool()
+async def get_test_product(category: str) -> str:  
+    """Fetch a product name from SQL server by category"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM test_products WHERE category = ?", category)
+
+        row = cursor.fetchone()
+        conn.close()
+
+        if row is None:
+            return f"No product found in category '{category}'."
+        
+        product_name = row[0]
+        return f"Test product in category '{category}': {product_name}"
+    
+    except Exception as e:
+        return f"DB Error in fetching get_test_product from database: {str(e)}"
+
 
 # ─────────────────────────────────────────
 # Run the server
