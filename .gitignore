@@ -1,3 +1,9 @@
 ﻿__pycache__/
 *.pyc
 screenshots/
+# SQL Server database files - never commit these
+*.mdf
+*.ldf
+
+# Virtual environment - never commit this either
+venv/
