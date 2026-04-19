@@ -1,3 +1,5 @@
+from fileinput import filename
+
 from mcp.server.fastmcp import FastMCP
 from playwright.async_api import async_playwright, expect
 import pyodbc
@@ -25,6 +27,9 @@ async def hello(name: str) -> str:
 async def login(email: str, password: str) -> str:
     """Open browser and log into Rahul Shetty Academy website"""
     global playwright_instance, browser, page
+
+    if browser is not None:
+        return "Browser already open. Please close it first."
 
     try:
         # Start Playwright engine
@@ -93,7 +98,9 @@ async def find_and_add_to_cart(product_name: str) -> str:
         return f"Product '{product_name}' not found on dashboard."
 
     except Exception as e:
-        return f"Error in find_and_add_to_cart: {str(e)}"
+      if page is not None:  
+        await page.screenshot(path=f"D:\\madhav-mcp\\screenshots\\error_find_and_add_to_cart.png")
+      return f"Error in find_and_add_to_cart: {str(e)}"
 
 @mcp.tool()
 async def view_cart() -> str:
@@ -132,6 +139,8 @@ async def view_cart() -> str:
         return result
 
     except Exception as e:
+        if page is not None:  
+            await page.screenshot(path=f"D:\\madhav-mcp\\screenshots\\error_view_cart.png")     
         return f"Error in view_cart: {str(e)}"
 
 # ─────────────────────────────────────────
@@ -206,6 +215,8 @@ async def checkout(country: str) -> str:
         )
 
     except Exception as e:
+        if page is not None:  
+            await page.screenshot(path=f"D:\\madhav-mcp\\screenshots\\error_checkout.png")
         return f"Error in checkout: {str(e)}"
 
 # ─────────────────────────────────────────
@@ -249,6 +260,8 @@ async def get_order_history() -> str:
         return result
 
     except Exception as e:
+        if page is not None:  
+            await page.screenshot(path=f"D:\\madhav-mcp\\screenshots\\error_get_order_history.png")
         return f"Error in get_order_history: {str(e)}"
     
 # ─────────────────────────────────────────
