@@ -53,12 +53,19 @@ async def login(email: str, password: str) -> str:
         # Click login button using ID locator
         await page.click("#login")
 
-        # Wait for dashboard URL to confirm login worked
-        await page.wait_for_url("**/dashboard/**", timeout=15000)
-        return f"Login successful! Logged in as {email}"
-
-    except Exception as e:
-        return f"Login failed: {str(e)}"
+        # Wait for either dashboard URL or an error message
+        try:
+            await page.wait_for_url("**/dashboard/**", timeout=30000)
+            return f"Login successful! Logged in as {email}"
+        except:
+            # Check if there's an error message on the page
+            error = page.locator(".errorMessage")
+            if await error.is_visible():
+                error_text = await error.inner_text()
+                return f"Login failed — error on page: {error_text.strip()}"
+            return f"Login failed — dashboard not reached within 30 seconds. Site may be slow."
+    except Exception as e: 
+        return f"Error in login: {str(e)}"
 
 # ─────────────────────────────────────────``
 # TOOL 3: Find Product and Add to Cart
@@ -289,6 +296,39 @@ async def take_screenshot(filename: str) -> str:
 
     except Exception as e:
         return f"Error in take_screenshot: {str(e)}"
+    
+    # ─────────────────────────────────────────
+# TOOL 8: Close Browser
+# ─────────────────────────────────────────
+@mcp.tool()
+async def close_browser() -> str:
+    """Close the browser and reset all global state for a fresh test run"""
+    global playwright_instance, browser, page
+
+    try:
+        if page is not None:
+            await page.close()
+        
+        if browser is not None:
+            await browser.close()
+
+        if playwright_instance is not None:
+            await playwright_instance.stop()
+
+        # Reset all global variables to None
+        # So next login starts completely fresh
+        page = None
+        browser = None
+        playwright_instance = None
+
+        return "Browser closed successfully. Ready for fresh test run."
+
+    except Exception as e:
+        # Force reset globals even if close failed
+        page = None
+        browser = None
+        playwright_instance = None
+        return f"Browser force closed. State reset. Error was: {str(e)}"
     
 
 # ─────────────────────────────────────────
